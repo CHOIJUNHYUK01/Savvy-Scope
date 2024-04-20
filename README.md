@@ -63,7 +63,7 @@ NASDAQ 같은 주식 관련 정보를 불러오는 API는 하루 제한이 빡�
 
 Firebase Functions와 Firebase Realtime Database를 이용해 매일 아침 6시 30분에 해당 정보를 정리해주는 사이트인 Investing.com 정보를 스크래핑하여 저장해 불러온다.
 
----
+<br /><br />
 
 ### 2. 앱을 켤때마다 너무 많이 부르는 데이터, 과금되지 않을까?
 
@@ -80,3 +80,49 @@ Core Data를 이용하기로 했다. 다만, 저장할 때 날짜를 기록하�
 시가 총액 데이터는 매일 6시 반을 기준으로 업데이트하도록 조건을 확인하고, 업데이트했다.
 
 매일 업데이트를 해야하는 한국투자증권 API의 Access 토큰은 매일 밤 12시에 업데이트해 사용한다.
+
+<br /><br />
+
+### 3. 데이터가 안 들어와요
+
+### 문제 상황
+
+Firebase에서 데이터를 불러와서 화면에 동기화를 시켜줘야 해서 GCD를 직렬큐로 만들어 데이터를 받아오면 컨트롤러한테 넘겨주게 했다.
+
+하지만, GCD 큐 안에 있는 Firebase 데이터를 불러오는 함수가 비동기이기 때문에 이를 기다리지 않고, 빈 데이터 배열을 컨트롤러한테 넘기는 문제가 생겼다.
+
+### 해결
+
+DispatchGroup을 사용해 해결했다.
+
+여러 스레드로 구성된 작업들을 끝나는 시점을 하나의 그룹으로 만들어 한 번에 파악하고, 다음 일을 지정할 수 있게 해줬다.
+
+아래 코드와 같이 직렬큐에 미리 들어간 일들이 끝나는 시점을 각각 enter(), wait(), leave()를 통해서 언제 시작됐는지, 끝나는지, 언제까지 기다리는지를 알게 해준다.
+
+```swift
+ let queue = DispatchQueue(label: "FetchCorp")
+ var newCorp: MarketcapCorp?
+            
+for i in 1...3 {
+    let dispatchGroup = DispatchGroup()
+    queue.async {
+         newCorp = MarketcapCorp(title: "", symbol: "", marketcap: "", currentPrice: "", arise: false, rank: 0, date: Date())
+         for data in ["arise", "capital", "name", "price", "symbol"] {
+             dispatchGroup.enter() // 이제 시작
+             self.ref.child("marketCap/\(i)/\(data)").getData { error, snapshot in
+                  defer { dispatchGroup.leave() }
+                          // Something in here
+                    }
+          }
+    }
+                
+     queue.async {
+          dispatchGroup.wait() // enter()된 시점부터, leave()할 때까지 대기
+          // Something in here
+      }
+```
+하면서 DB 구조를 다시 짜는 방법이 가장 편리하겠지만, 그 구조를 다시 짜기 위해 고쳐야할 것도 많고, 어떻게 짤 수 있는지 리서치하는 시간이 더 걸릴것이라고 판단했다.
+
+그리고 데이터를 동기화하는데 불가능한 방법이 아니라고 판단했다.
+
+이참에 GCD를 더 알게 된 시간이 되어 더 좋았다.
