@@ -54,6 +54,8 @@ NASDAQ 같은 주식 관련 정보를 불러오는 API는 하루 제한이 빡�
 나만의 DB와 서버를 만들기로 했다.
 Firebase Functions와 Firebase Realtime Database를 이용해 매일 아침 6시 30분에 해당 정보를 정리해주는 사이트인 Investing.com 정보를 스크래핑하여 저장해 불러온다.
 
+---
+
 ### 2. 앱을 켤때마다 너무 많이 부르는 데이터, 과금되지 않을까?
 
 ### 문제 상황
