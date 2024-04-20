@@ -32,6 +32,11 @@ v0.1.0 : 최근 30일 NASDAQ 등락율, 시가 총액 TOP 3 기업 데이터 보
 - MVC 패턴
 
 ### 사용 기술 및 오픈소스 라이브러리
+
+**iOS**
+- FSCalendar, Core Data
+
+**서버 및 데이터베이스, API**
 - Firebase Functions, Firebase Realtime Database, Google Cloud Functions Scheduler
 - NodeJS, puppeteer
 - [한국투자증권API](https://apiportal.koreainvestment.com/intro)
@@ -45,13 +50,17 @@ v0.1.0 : 최근 30일 NASDAQ 등락율, 시가 총액 TOP 3 기업 데이터 보
 ### 문제 상황
 
 매일 시가 총액 기업 데이터와 NASDAQ 데이터를 불러와야 한다.
+
 시가 총액 순위별로 내가 원하는, 전일 종가와 전일 대비 등락율, 시가 총액을 제공하는 API가 없었다.
+
 한국투자증권API는 내가 얼마를 호출하든 무료다. 하지만, 시가 총액을 제공하진 않았다.
+
 NASDAQ 같은 주식 관련 정보를 불러오는 API는 하루 제한이 빡빡하게 있고, 과금을 통해 더 부를 수 있는 시스템이다.
 
 ### 해결
 
 나만의 DB와 서버를 만들기로 했다.
+
 Firebase Functions와 Firebase Realtime Database를 이용해 매일 아침 6시 30분에 해당 정보를 정리해주는 사이트인 Investing.com 정보를 스크래핑하여 저장해 불러온다.
 
 ---
@@ -61,10 +70,13 @@ Firebase Functions와 Firebase Realtime Database를 이용해 매일 아침 6시
 ### 문제 상황
 
 Firebase가 아무리 무료로도 사이드 프로젝트 정도는 돌릴 수 있는 용량을 제공해준다고 하더라도, 한 명의 악용하는 유저가 있다면 과금이 심해진다.
+
 이를 방지하기 위한 방법이 필요했다.
 
 ### 해결
 
 Core Data를 이용하기로 했다. 다만, 저장할 때 날짜를 기록하면서 해결했다.
+
 시가 총액 데이터는 매일 6시 반을 기준으로 업데이트하도록 조건을 확인하고, 업데이트했다.
+
 매일 업데이트를 해야하는 한국투자증권 API의 Access 토큰은 매일 밤 12시에 업데이트해 사용한다.
